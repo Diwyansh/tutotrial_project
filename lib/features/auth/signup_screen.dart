@@ -1,3 +1,5 @@
+import 'package:ecommerce_project/features/auth/models/auth_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -8,13 +10,14 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final TextEditingController _usernameController = TextEditingController();
 
   final TextEditingController _passwordController = TextEditingController();
 
-  final TextEditingController _confPasswordController = TextEditingController();
-
   final GlobalKey<FormState> _key = GlobalKey();
+
+  AuthModel authModel = AuthModel();
+
+  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   bool isVisible = false;
 
@@ -33,7 +36,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 Text("Create an\Account!",style:  TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
                 SizedBox(height: 20,),
                 TextFormField(
-                  controller: _usernameController,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.grey.shade200,
@@ -42,6 +44,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),borderSide: BorderSide(color: Colors.blueAccent)),
                   ),
+                  onSaved: (val) {
+                    authModel.email = val;
+                  },
                   validator: (val) {
                     return val!.contains("@") ? null : "Please enter valid email";
                   },
@@ -69,7 +74,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 SizedBox(height: 20,),
                 TextFormField(
-                  controller: _confPasswordController,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.grey.shade200,
@@ -80,6 +84,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),borderSide: BorderSide(color: Colors.blueAccent)),
                   ),
                   obscureText: isVisible,
+                  onSaved: (val) {
+                    authModel.password = val;
+                  },
                   validator: (val) {
                     return val == _passwordController.text ? null : "Password not matched";
                   },
@@ -91,10 +98,16 @@ class _SignUpPageState extends State<SignUpPage> {
                       minimumSize: Size(double.infinity, 60),
                     textStyle: TextStyle(fontSize: 22,fontWeight: FontWeight.bold)
                   ),
-                    onPressed: (){
+                    onPressed: () async {
+
                       if(_key.currentState!.validate()) {
-                        Navigator.pushNamed(context, "dashboard");
+                        _key.currentState!.save();
+
+                        final user = await firebaseAuth.createUserWithEmailAndPassword(email: authModel.email!, password: authModel.password!);
+                        print(user.user!.email);
+
                       }
+
                     },
                     child: Text("SignUp")
                 ),
